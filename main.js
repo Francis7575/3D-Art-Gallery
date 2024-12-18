@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { images, titles } from "./constants";
 import { Reflector } from "three/examples/jsm/Addons.js";
+import { Tween, Easing, update as UpdateTween } from "tween";
 
 const textureLoader = new THREE.TextureLoader();
 const renderer = new THREE.WebGLRenderer();
@@ -25,11 +26,12 @@ const rightArrowTexture = textureLoader.load("right.png");
 let count = images.length;
 for (let i = 0; i < count; i++) {
   const texture = textureLoader.load(images[i]);
+  
   texture.colorSpace = THREE.SRGBColorSpace;
   const baseNode = new THREE.Object3D();
 
   // Adjust the rotation so that images follow a circular path correctly
-  baseNode.rotation.y = i * ((-2 * Math.PI) / count);
+  baseNode.rotation.y = i * ((2 * Math.PI) / count);
   rootNode.add(baseNode);
 
   // Create the border mesh
@@ -91,15 +93,26 @@ scene.add(mirror);
 
 let currentIndex = 0;
 function rotateGallery(direction) {
-  // Update currentIndex with bounds checking
-  currentIndex = (currentIndex + direction + images.length) % images.length;
-  // Rotate the rootNode to align the next image to the front
-  const angle = (currentIndex * (2 * Math.PI)) / images.length;
-  rootNode.rotation.y = angle;
+  if (direction === 1) {
+    currentIndex = currentIndex === 5 ? currentIndex + 1 : currentIndex + 1;
+  } else if (direction === - 1) {
+    currentIndex = currentIndex === 0 ? currentIndex - 1 : currentIndex - 1;
+  }
+  // Calculate the target angle for the next image
+  const targetAngle = (currentIndex * (2 * Math.PI)) / count;
+
+  console.log("Current visible image index:", currentIndex);
+
+  // Animate the rotation to the next image smoothly
+  new Tween(rootNode.rotation)
+    .to({ y: targetAngle })
+    .easing(Easing.Circular.InOut)
+    .start();
 }
 
 function animate() {
-  // rootNode.rotation.y += 0.007;
+  // Update any ongoing tweens
+  UpdateTween();
   renderer.render(scene, camera);
 }
 
@@ -112,19 +125,22 @@ window.addEventListener("resize", () => {
 window.addEventListener("click", (e) => {
   const raycaster = new THREE.Raycaster();
 
+  // Convert mouse position to normalized device coordinates
   const mouseNDC = new THREE.Vector2(
     (e.clientX / window.innerWidth) * 2 - 1,
     -(e.clientY / window.innerHeight) * 2 + 1
   );
 
+  // Set the raycaster direction from the camera's perspective
   raycaster.setFromCamera(mouseNDC, camera);
 
+  // Find intersections with the rootNode (image carousel)
   const intersections = raycaster.intersectObject(rootNode, true);
   if (intersections.length > 0) {
     if (intersections[0].object.name === "LeftArrow") {
-      rotateGallery(-1);
+      rotateGallery(-1); // Move to the previous image
     } else if (intersections[0].object.name === "RightArrow") {
-      rotateGallery(1);
+      rotateGallery(1); // Move to the next image
     }
   }
 });
