@@ -19,6 +19,9 @@ const camera = new THREE.PerspectiveCamera(
 const rootNode = new THREE.Object3D();
 scene.add(rootNode);
 
+const leftArrowTexture = textureLoader.load('left.png');
+const rightArrowTexture = textureLoader.load('right.png');
+
 let count = 6;
 for (let i = 0; i < 6; i++) {
   const texture = textureLoader.load(images[i]);
@@ -41,6 +44,23 @@ for (let i = 0; i < 6; i++) {
 
   artwork.position.z = -4;
   baseNode.add(artwork);
+
+  const leftArrow = new THREE.Mesh(
+    new THREE.BoxGeometry(0.3, 0.3, 0.01),
+    new THREE.MeshStandardMaterial({map: leftArrowTexture, transparent: true})
+  )
+  leftArrow.position.set(-1.8, 0, -4);
+  baseNode.add(leftArrow)
+
+  const rightArrow = new THREE.Mesh(
+    new THREE.BoxGeometry(0.3, 0.3, 0.01),
+    new THREE.MeshStandardMaterial({
+      map: rightArrowTexture,
+      transparent: true
+    })
+  );
+  rightArrow.position.set(1.8, 0, -4);
+  baseNode.add(rightArrow)
 }
 
 const spotlight = new THREE.SpotLight(0xffffff, 100.0, 10.0, 0.7, 1);
