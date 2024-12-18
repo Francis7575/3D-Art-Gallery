@@ -34,6 +34,7 @@ for (let i = 0; i < 6; i++) {
     new THREE.BoxGeometry(3.2, 2.2, 0.09),
     new THREE.MeshStandardMaterial({ color: 0x202020 })
   );
+  border.name = `Border_${i}`
   border.position.z = -4;
   baseNode.add(border);
 
@@ -42,6 +43,7 @@ for (let i = 0; i < 6; i++) {
     new THREE.MeshStandardMaterial({ map: texture })
   );
 
+  artwork.name = `Art_${i}`;  
   artwork.position.z = -4;
   baseNode.add(artwork);
 
@@ -49,6 +51,7 @@ for (let i = 0; i < 6; i++) {
     new THREE.BoxGeometry(0.3, 0.3, 0.01),
     new THREE.MeshStandardMaterial({map: leftArrowTexture, transparent: true})
   )
+  leftArrow.name = `LeftArrow`;
   leftArrow.position.set(-1.8, 0, -4);
   baseNode.add(leftArrow)
 
@@ -59,6 +62,7 @@ for (let i = 0; i < 6; i++) {
       transparent: true
     })
   );
+  rightArrow.name = `RightArrow`;
   rightArrow.position.set(1.8, 0, -4);
   baseNode.add(rightArrow)
 }
@@ -80,7 +84,7 @@ mirror.rotateX(-Math.PI / 2);
 scene.add(mirror);
 
 function animate() {
-  rootNode.rotation.y += 0.007;
+  // rootNode.rotation.y += 0.007;
   renderer.render(scene, camera);
 }
 
@@ -88,5 +92,24 @@ window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
-
 });
+
+window.addEventListener('click', (e) => {
+  const raycaster = new THREE.Raycaster();
+
+  const mouseNDC = new THREE.Vector2(
+    (e.clientX / window.innerWidth) * 2 - 1,
+    - (e.clientY / window.innerHeight) * 2 + 1,
+  );
+
+  raycaster.setFromCamera(mouseNDC, camera);
+
+  const intersections = raycaster.intersectObject(rootNode, true);
+  if (intersections.length > 0) {
+    if (intersections[0].object.name === "LeftArrow") {
+      console.log("Click on left arrow");
+    } else if (intersections[0].object.name === "RightArrow") {
+      console.log("Click on right arrow");
+    }
+  }
+})
