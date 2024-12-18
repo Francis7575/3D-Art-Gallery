@@ -1,5 +1,7 @@
 import * as THREE from "three";
+import { images, titles } from "./constants";
 
+const textureLoader = new THREE.TextureLoader();
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setAnimationLoop(animate);
@@ -18,13 +20,15 @@ scene.add(rootNode);
 
 let count = 6;
 for (let i = 0; i < 6; i++) {
+  const texture = textureLoader.load(images[i]);
+  texture.colorSpace = THREE.SRGBColorSpace;
   const baseNode = new THREE.Object3D();
   baseNode.rotation.y = i * ((2 * Math.PI) / count);
   rootNode.add(baseNode);
 
   const artwork = new THREE.Mesh(
     new THREE.BoxGeometry(3, 2, 0.1),
-    new THREE.MeshBasicMaterial({ color: 0xf08080 })
+    new THREE.MeshBasicMaterial({ map: texture })
   );
 
   artwork.position.z = -4;
