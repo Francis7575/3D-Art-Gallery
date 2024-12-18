@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { images, titles } from "./constants";
+import { Reflector } from "three/examples/jsm/Addons.js";
 
 const textureLoader = new THREE.TextureLoader();
 const renderer = new THREE.WebGLRenderer();
@@ -30,7 +31,7 @@ for (let i = 0; i < 6; i++) {
     new THREE.BoxGeometry(3.2, 2.2, 0.09),
     new THREE.MeshStandardMaterial({ color: 0x202020 })
   );
-  border.position.z = -4
+  border.position.z = -4;
   baseNode.add(border);
 
   const artwork = new THREE.Mesh(
@@ -42,11 +43,21 @@ for (let i = 0; i < 6; i++) {
   baseNode.add(artwork);
 }
 
-const spotlight = new THREE.SpotLight(0xffffff, 100.0, 10.0, 0.7, 1)
+const spotlight = new THREE.SpotLight(0xffffff, 100.0, 10.0, 0.7, 1);
 spotlight.position.set(0, 5, 0);
 spotlight.target.position.set(0, 1, -5);
-scene.add(spotlight)
-scene.add(spotlight.target)
+scene.add(spotlight);
+scene.add(spotlight.target);
+
+const mirror = new Reflector(new THREE.CircleGeometry(10), {
+  color: 0x303030,
+  textureWidth: window.innerWidth,
+  textureHeight: window.innerHeight,
+});
+
+mirror.position.y = -1.1;
+mirror.rotateX(-Math.PI / 2);
+scene.add(mirror);
 
 function animate() {
   rootNode.rotation.y += 0.007;
@@ -57,4 +68,5 @@ window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
+
 });
