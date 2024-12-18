@@ -7,4 +7,4 @@ export const images = [
   "niagara-falls.webp",
 ];
 
-export const titles = ["Spring", "Summer", "Fall", "Winter", "Mount Everest", "Niagara Falls"];
+export const titles = ["Spring", "Summer", "Fall", "Winter", "Aurora Borealis", "Niagara Falls"];

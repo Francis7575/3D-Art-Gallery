@@ -19,52 +19,58 @@ const camera = new THREE.PerspectiveCamera(
 const rootNode = new THREE.Object3D();
 scene.add(rootNode);
 
-const leftArrowTexture = textureLoader.load('left.png');
-const rightArrowTexture = textureLoader.load('right.png');
+const leftArrowTexture = textureLoader.load("left.png");
+const rightArrowTexture = textureLoader.load("right.png");
 
-let count = 6;
-for (let i = 0; i < 6; i++) {
+let count = images.length;
+for (let i = 0; i < count; i++) {
   const texture = textureLoader.load(images[i]);
   texture.colorSpace = THREE.SRGBColorSpace;
   const baseNode = new THREE.Object3D();
-  baseNode.rotation.y = i * ((2 * Math.PI) / count);
+
+  // Adjust the rotation so that images follow a circular path correctly
+  baseNode.rotation.y = i * ((-2 * Math.PI) / count);
   rootNode.add(baseNode);
 
+  // Create the border mesh
   const border = new THREE.Mesh(
     new THREE.BoxGeometry(3.2, 2.2, 0.09),
     new THREE.MeshStandardMaterial({ color: 0x202020 })
   );
-  border.name = `Border_${i}`
+  border.name = `Border_${i}`;
   border.position.z = -4;
   baseNode.add(border);
 
+  // Create the artwork mesh
   const artwork = new THREE.Mesh(
     new THREE.BoxGeometry(3, 2, 0.1),
     new THREE.MeshStandardMaterial({ map: texture })
   );
 
-  artwork.name = `Art_${i}`;  
+  artwork.name = `Art_${i}`;
   artwork.position.z = -4;
   baseNode.add(artwork);
 
+  // Left arrow mesh
   const leftArrow = new THREE.Mesh(
     new THREE.BoxGeometry(0.3, 0.3, 0.01),
-    new THREE.MeshStandardMaterial({map: leftArrowTexture, transparent: true})
-  )
+    new THREE.MeshStandardMaterial({ map: leftArrowTexture, transparent: true })
+  );
   leftArrow.name = `LeftArrow`;
   leftArrow.position.set(-1.8, 0, -4);
-  baseNode.add(leftArrow)
+  baseNode.add(leftArrow);
 
+  // Right arrow mesh
   const rightArrow = new THREE.Mesh(
     new THREE.BoxGeometry(0.3, 0.3, 0.01),
     new THREE.MeshStandardMaterial({
       map: rightArrowTexture,
-      transparent: true
+      transparent: true,
     })
   );
   rightArrow.name = `RightArrow`;
   rightArrow.position.set(1.8, 0, -4);
-  baseNode.add(rightArrow)
+  baseNode.add(rightArrow);
 }
 
 const spotlight = new THREE.SpotLight(0xffffff, 100.0, 10.0, 0.7, 1);
@@ -83,6 +89,15 @@ mirror.position.y = -1.1;
 mirror.rotateX(-Math.PI / 2);
 scene.add(mirror);
 
+let currentIndex = 0;
+function rotateGallery(direction) {
+  // Update currentIndex with bounds checking
+  currentIndex = (currentIndex + direction + images.length) % images.length;
+  // Rotate the rootNode to align the next image to the front
+  const angle = (currentIndex * (2 * Math.PI)) / images.length;
+  rootNode.rotation.y = angle;
+}
+
 function animate() {
   // rootNode.rotation.y += 0.007;
   renderer.render(scene, camera);
@@ -94,12 +109,12 @@ window.addEventListener("resize", () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-window.addEventListener('click', (e) => {
+window.addEventListener("click", (e) => {
   const raycaster = new THREE.Raycaster();
 
   const mouseNDC = new THREE.Vector2(
     (e.clientX / window.innerWidth) * 2 - 1,
-    - (e.clientY / window.innerHeight) * 2 + 1,
+    -(e.clientY / window.innerHeight) * 2 + 1
   );
 
   raycaster.setFromCamera(mouseNDC, camera);
@@ -107,9 +122,9 @@ window.addEventListener('click', (e) => {
   const intersections = raycaster.intersectObject(rootNode, true);
   if (intersections.length > 0) {
     if (intersections[0].object.name === "LeftArrow") {
-      console.log("Click on left arrow");
+      rotateGallery(-1);
     } else if (intersections[0].object.name === "RightArrow") {
-      console.log("Click on right arrow");
+      rotateGallery(1);
     }
   }
-})
+});
