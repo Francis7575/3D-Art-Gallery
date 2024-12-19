@@ -26,12 +26,12 @@ const rightArrowTexture = textureLoader.load("right.png");
 let count = images.length;
 for (let i = 0; i < count; i++) {
   const texture = textureLoader.load(images[i]);
-  
+
   texture.colorSpace = THREE.SRGBColorSpace;
   const baseNode = new THREE.Object3D();
 
   // Adjust the rotation so that images follow a circular path correctly
-  baseNode.rotation.y = i * ((2 * Math.PI) / count);
+  baseNode.rotation.y = i * ((-2 * Math.PI) / count);
   rootNode.add(baseNode);
 
   // Create the border mesh
@@ -58,7 +58,8 @@ for (let i = 0; i < count; i++) {
     new THREE.BoxGeometry(0.3, 0.3, 0.01),
     new THREE.MeshStandardMaterial({ map: leftArrowTexture, transparent: true })
   );
-  leftArrow.name = `LeftArrow`;
+  leftArrow.name = `left`;
+  leftArrow.userData = i;
   leftArrow.position.set(-1.8, 0, -4);
   baseNode.add(leftArrow);
 
@@ -70,7 +71,8 @@ for (let i = 0; i < count; i++) {
       transparent: true,
     })
   );
-  rightArrow.name = `RightArrow`;
+  rightArrow.name = `right`;
+  rightArrow.userData = i;
   rightArrow.position.set(1.8, 0, -4);
   baseNode.add(rightArrow);
 }
@@ -91,23 +93,30 @@ mirror.position.y = -1.1;
 mirror.rotateX(-Math.PI / 2);
 scene.add(mirror);
 
-let currentIndex = 0;
+function getCurrentIndex() {
+  const rotationPerImage = (2 * Math.PI) / count;
+  const normalizedRotation = ((rootNode.rotation.y % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI); // Normalize rotation to [0, 2π]
+  return Math.round(normalizedRotation / rotationPerImage) % count;
+}
+
 function rotateGallery(direction) {
-  if (direction === 1) {
-    currentIndex = currentIndex === 5 ? currentIndex + 1 : currentIndex + 1;
-  } else if (direction === - 1) {
-    currentIndex = currentIndex === 0 ? currentIndex - 1 : currentIndex - 1;
-  }
-  // Calculate the target angle for the next image
-  const targetAngle = (currentIndex * (2 * Math.PI)) / count;
+  const currentIndex = getCurrentIndex(); 
+  const newIndex = (currentIndex + direction + count) % count;
+  const newRotationY = rootNode.rotation.y + (direction * 2 * Math.PI) / count;
 
-  console.log("Current visible image index:", currentIndex);
-
+  const titleElement = document.getElementById("title")
   // Animate the rotation to the next image smoothly
   new Tween(rootNode.rotation)
-    .to({ y: targetAngle })
+    .to({ y: newRotationY }, 500)
     .easing(Easing.Circular.InOut)
-    .start();
+    .start()
+    .onStart(() => {
+      titleElement.style.opacity = 0;
+    })
+    .onComplete(() => {
+      titleElement.innerText = titles[newIndex];
+      titleElement.style.opacity = 1;
+    });
 }
 
 function animate() {
@@ -137,10 +146,13 @@ window.addEventListener("click", (e) => {
   // Find intersections with the rootNode (image carousel)
   const intersections = raycaster.intersectObject(rootNode, true);
   if (intersections.length > 0) {
-    if (intersections[0].object.name === "LeftArrow") {
-      rotateGallery(-1); // Move to the previous image
-    } else if (intersections[0].object.name === "RightArrow") {
-      rotateGallery(1); // Move to the next image
+    const clickedObject = intersections[0].object;
+
+    if (clickedObject.name === 'left' || clickedObject.name === 'right') {
+      const direction = clickedObject.name === 'left' ? -1 : 1;
+      rotateGallery(direction);  
     }
   }
 });
+
+document.getElementById("title").innerText = titles[0];
