@@ -107,7 +107,7 @@ function rotateGallery(direction) {
   const titleElement = document.getElementById("title")
   // Animate the rotation to the next image smoothly
   new Tween(rootNode.rotation)
-    .to({ y: newRotationY }, 500)
+    .to({ y: newRotationY }, 1500)
     .easing(Easing.Circular.InOut)
     .start()
     .onStart(() => {
